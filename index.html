@@ -6,8 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>个人工作台</title>
 
-<!-- 添加到主屏幕支持 -->
-
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="工作台" />
@@ -15,543 +13,522 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232B2A28'/%3E%3Ccircle cx='50' cy='50' r='26' fill='%23C17A4A'/%3E%3C/svg%3E" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232B2A28'/%3E%3Ccircle cx='50' cy='50' r='26' fill='%23C17A4A'/%3E%3C/svg%3E" />
 
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin onerror="this.onerror=null;this.src='https://unpkg.com/react@18/umd/react.production.min.js'"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin onerror="this.onerror=null;this.src='https://unpkg.com/react-dom@18/umd/react-dom.production.min.js'"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js" crossorigin onerror="this.onerror=null;this.src='https://unpkg.com/@babel/standalone/babel.min.js'"></script>
-
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; height: 100%; overscroll-behavior: none; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  html, body { height: 100%; overscroll-behavior: none; }
   body {
     font-family: 'PingFang SC','Helvetica Neue',-apple-system,BlinkMacSystemFont,sans-serif;
     background: #F6F3EE;
   }
-  #root { height: 100vh; height: 100dvh; }
-  input, textarea { font-family: inherit; }
+  input, textarea, button { font-family: inherit; }
   ::-webkit-scrollbar { display: none; }
-  #loading-msg {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: #A39D93; font-size: 14px; background: #F6F3EE;
+
+  #app { display: flex; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
+
+  /* 左侧导航 */
+  #nav {
+    width: 72px; flex-shrink: 0; background: #2B2A28; display: flex;
+    flex-direction: column; align-items: center;
+    padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: 16px; gap: 4px;
+    overflow-y: auto;
   }
+  #nav .logo {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #C17A4A, #B8574F); margin-bottom: 20px; flex-shrink: 0;
+  }
+  .nav-btn {
+    width: 56px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 0; border-radius: 14px; border: none; background: transparent; cursor: pointer;
+  }
+  .nav-btn.active { background: rgba(255,255,255,0.08); }
+  .nav-icon {
+    width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; background: transparent;
+  }
+  .nav-icon svg { width: 18px; height: 18px; stroke: #9A9690; }
+  .nav-btn.active .nav-icon svg { stroke: #F6F3EE; }
+  .nav-label { font-size: 10px; color: #7A766F; letter-spacing: 1px; }
+  .nav-btn.active .nav-label { color: #F6F3EE; font-weight: 600; }
+
+  /* 右侧内容 */
+  #main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #content-wrap { padding: max(24px, env(safe-area-inset-top)) 20px 40px; }
+  .header-date { font-size: 12px; color: #A39D93; letter-spacing: 2px; margin-bottom: 4px; }
+  .header-title { font-size: 26px; font-weight: 700; color: #2B2A28; letter-spacing: 1px; margin-bottom: 24px; }
+
+  .card { background: #FFFFFF; border-radius: 16px; padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(43,42,40,0.06); }
+  .card-label { font-size: 12px; color: #A39D93; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+  .empty-state { padding: 28px 0; text-align: center; color: #B5B0A6; font-size: 13px; }
+
+  .input-field {
+    width: 100%; font-size: 16px; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid #EAE5DB; outline: none; box-sizing: border-box; color: #2B2A28;
+  }
+  .input-field:focus { border-color: #C9C4B8; }
+  textarea.input-field { resize: none; }
+
+  .btn-primary {
+    width: 100%; padding: 13px 0; border-radius: 12px; border: none; color: #FFFFFF;
+    font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+  }
+  .btn-primary:disabled { background: #E3DFD6 !important; cursor: default; }
+  .icon-btn {
+    border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .row-between { display: flex; justify-content: space-between; align-items: center; }
+  .log-row {
+    display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid #F3F0E9;
+  }
+  .log-row:last-child { border-bottom: none; }
+
+  svg.icon { width: 16px; height: 16px; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 
 </head>
 <body>
-<div id="loading-msg">正在加载…</div>
-<div id="root"></div>
+<div id="app">
+  <nav id="nav"></nav>
+  <main id="main"><div id="content-wrap"></div></main>
+</div>
+
 <script>
-  setTimeout(function () {
-    var el = document.getElementById('loading-msg');
-    if (el && document.getElementById('root').innerHTML === '') {
-      el.textContent = '加载时间较长，请检查网络后下拉刷新重试';
-    }
-  }, 6000);
-</script>
+(function () {
+  "use strict";
 
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useCallback } = React;
-
-// ---------- 简易图标（内联 SVG，无需外部依赖） ----------
-const Icon = ({ path, size = 18, color = "currentColor", strokeWidth = 2 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: path }} />
-);
-const icons = {
-  scale: '<path d="M16 16h.01"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 12 2-2"/><path d="M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6.17"/><path d="M19 5h-4a1 1 0 0 0-1 1v6.17"/>',
-  piggy: '<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-1.5h3V20h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2-1.5-.5-2-1-2-2z"/><path d="M2 9v1"/><path d="M8 6.5V4"/>',
-  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
-  smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
-  lang: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
-  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
-  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
-  check: '<path d="M20 6 9 17l-5-5"/>',
-  down: '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
-  up: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
-  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
-};
-
-const SECTIONS = [
-  { key: "weight", label: "减肥", icon: "scale", color: "#4A7C6E" },
-  { key: "saving", label: "存钱", icon: "piggy", color: "#C17A4A" },
-  { key: "sleep", label: "作息", icon: "moon", color: "#5B6EA8" },
-  { key: "mood", label: "心情", icon: "smile", color: "#B8574F" },
-  { key: "english", label: "英语", icon: "lang", color: "#7A8B4A" },
-  { key: "other", label: "其他", icon: "more", color: "#8A7A8C" },
-];
-
-const todayStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
-const fmtMD = (dateStr) => {
-  const [, m, d] = dateStr.split("-");
-  return `${parseInt(m)}月${parseInt(d)}日`;
-};
-
-// ---------- 本地存储 ----------
-const STORAGE_KEY = "personal-dashboard-data-v1";
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return {
-    weight: { logs: [] },
-    saving: { logs: [] },
-    sleep: { logs: [] },
-    mood: { logs: [] },
-    english: { logs: [] },
-    other: { todos: [] },
+  // ---------- 图标 (内联 SVG path，零依赖) ----------
+  var ICONS = {
+    scale: '<path d="M16 16h.01"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 12 2-2"/><path d="M9 5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6.17"/><path d="M19 5h-4a1 1 0 0 0-1 1v6.17"/>',
+    piggy: '<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-1.5h3V20h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2-1.5-.5-2-1-2-2z"/><path d="M2 9v1"/><path d="M8 6.5V4"/>',
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+    lang: '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    down: '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+    up: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'
   };
-}
-function saveData(data) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (e) {}
-}
+  function iconSvg(name, color) {
+    return '<svg class="icon" viewBox="0 0 24 24" stroke="' + (color || 'currentColor') + '">' + ICONS[name] + '</svg>';
+  }
 
-function App() {
-  const [active, setActive] = useState("weight");
-  const [data, setData] = useState(loadData);
+  var SECTIONS = [
+    { key: "weight", label: "减肥", icon: "scale", color: "#4A7C6E" },
+    { key: "saving", label: "存钱", icon: "piggy", color: "#C17A4A" },
+    { key: "sleep", label: "作息", icon: "moon", color: "#5B6EA8" },
+    { key: "mood", label: "心情", icon: "smile", color: "#B8574F" },
+    { key: "english", label: "英语", icon: "lang", color: "#7A8B4A" },
+    { key: "other", label: "其他", icon: "more", color: "#8A7A8C" }
+  ];
 
-  useEffect(() => { saveData(data); }, [data]);
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function fmtMD(dateStr) {
+    var parts = dateStr.split("-");
+    return parseInt(parts[1]) + "月" + parseInt(parts[2]) + "日";
+  }
+  function esc(str) {
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
 
-  const updateSection = useCallback((key, updater) => {
-    setData((prev) => ({ ...prev, [key]: updater(prev[key]) }));
-  }, []);
+  // ---------- 本地存储 ----------
+  var STORAGE_KEY = "personal-dashboard-data-v1";
+  function loadData() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      weight: { logs: [] },
+      saving: { logs: [] },
+      sleep: { logs: [] },
+      mood: { logs: [] },
+      english: { logs: [] },
+      other: { todos: [] }
+    };
+  }
+  function saveData() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); } catch (e) {}
+  }
 
-  const activeConfig = SECTIONS.find((s) => s.key === active);
+  var state = {
+    active: "weight",
+    data: loadData()
+  };
 
-  return (
-    <div style={{ display: "flex", height: "100%", width: "100%", background: "#F6F3EE", overflow: "hidden" }}>
-      <nav style={{
-        width: 72, flexShrink: 0, background: "#2B2A28", display: "flex",
-        flexDirection: "column", alignItems: "center", paddingTop: "max(24px, env(safe-area-inset-top))",
-        paddingBottom: 16, gap: 4, overflowY: "auto",
-      }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #C17A4A, #B8574F)", marginBottom: 20, flexShrink: 0 }} />
-        {SECTIONS.map((s) => {
-          const isActive = active === s.key;
-          return (
-            <button key={s.key} onClick={() => setActive(s.key)} style={{
-              width: 56, display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-              padding: "10px 0", borderRadius: 14, border: "none",
-              background: isActive ? "rgba(255,255,255,0.08)" : "transparent", cursor: "pointer",
-            }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center",
-                justifyContent: "center", background: isActive ? s.color : "transparent",
-              }}>
-                <Icon path={icons[s.icon]} size={18} color={isActive ? "#F6F3EE" : "#9A9690"} />
-              </div>
-              <span style={{ fontSize: 10, color: isActive ? "#F6F3EE" : "#7A766F", letterSpacing: 1, fontWeight: isActive ? 600 : 400 }}>
-                {s.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+  function update(sectionKey, updater) {
+    state.data[sectionKey] = updater(state.data[sectionKey]);
+    saveData();
+    render();
+  }
 
-      <main style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-        <div style={{ padding: "max(24px, env(safe-area-inset-top)) 20px 40px" }}>
-          <header style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: "#A39D93", letterSpacing: 2, marginBottom: 4 }}>
-              {fmtMD(todayStr())} · 今日记录
-            </div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: "#2B2A28", margin: 0, letterSpacing: 1 }}>
-              {activeConfig.label}
-            </h1>
-          </header>
-
-          {active === "weight" && <WeightSection state={data.weight} update={(fn) => updateSection("weight", fn)} color={activeConfig.color} />}
-          {active === "saving" && <SavingSection state={data.saving} update={(fn) => updateSection("saving", fn)} color={activeConfig.color} />}
-          {active === "sleep" && <SleepSection state={data.sleep} update={(fn) => updateSection("sleep", fn)} color={activeConfig.color} />}
-          {active === "mood" && <MoodSection state={data.mood} update={(fn) => updateSection("mood", fn)} color={activeConfig.color} />}
-          {active === "english" && <EnglishSection state={data.english} update={(fn) => updateSection("english", fn)} color={activeConfig.color} />}
-          {active === "other" && <OtherSection state={data.other} update={(fn) => updateSection("other", fn)} color={activeConfig.color} />}
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function Card({ children, style }) {
-  return <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 18, marginBottom: 14, boxShadow: "0 1px 3px rgba(43,42,40,0.06)", ...style }}>{children}</div>;
-}
-function SectionLabel({ children }) {
-  return <div style={{ fontSize: 12, color: "#A39D93", letterSpacing: 1, marginBottom: 10, fontWeight: 600 }}>{children}</div>;
-}
-function PrimaryButton({ onClick, children, color, disabled }) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{
-      width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
-      background: disabled ? "#E3DFD6" : color, color: "#FFFFFF", fontSize: 15, fontWeight: 600,
-      cursor: disabled ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-    }}>
-      {children}
-    </button>
-  );
-}
-function EmptyState({ text }) {
-  return <div style={{ padding: "28px 0", textAlign: "center", color: "#B5B0A6", fontSize: 13 }}>{text}</div>;
-}
-
-function WeightSection({ state, update, color }) {
-  const [val, setVal] = useState("");
-  const today = todayStr();
-  const logs = state.logs || [];
-  const last = logs[logs.length - 1];
-  const prev = logs[logs.length - 2];
-  const delta = last && prev ? (last.value - prev.value).toFixed(1) : null;
-
-  const add = () => {
-    const n = parseFloat(val);
-    if (isNaN(n) || n <= 0) return;
-    update((s) => {
-      const filtered = (s.logs || []).filter((l) => l.date !== today);
-      return { ...s, logs: [...filtered, { date: today, value: n }] };
+  // ---------- 渲染导航 ----------
+  function renderNav() {
+    var nav = document.getElementById("nav");
+    var html = '<div class="logo"></div>';
+    SECTIONS.forEach(function (s) {
+      var isActive = state.active === s.key;
+      html += '<button class="nav-btn' + (isActive ? ' active' : '') + '" data-key="' + s.key + '">' +
+        '<div class="nav-icon" style="background:' + (isActive ? s.color : 'transparent') + '">' +
+        iconSvg(s.icon, isActive ? '#F6F3EE' : '#9A9690') +
+        '</div><span class="nav-label">' + s.label + '</span></button>';
     });
-    setVal("");
-  };
+    nav.innerHTML = html;
+    nav.querySelectorAll(".nav-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        state.active = btn.getAttribute("data-key");
+        render();
+      });
+    });
+  }
 
-  return (
-    <React.Fragment>
-      <Card>
-        <SectionLabel>今天的体重 (kg)</SectionLabel>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <input type="number" inputMode="decimal" value={val} onChange={(e) => setVal(e.target.value)}
-            placeholder={last ? String(last.value) : "例如 58.5"}
-            style={{ flex: 1, fontSize: 20, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", color: "#2B2A28" }} />
-          <button onClick={add} style={{ width: 48, borderRadius: 12, border: "none", background: color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon path={icons.check} size={20} color="#fff" />
-          </button>
-        </div>
-        {last && (
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 28, fontWeight: 700, color: "#2B2A28" }}>{last.value}</span>
-            <span style={{ fontSize: 13, color: "#A39D93" }}>kg</span>
-            {delta !== null && (
-              <span style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 2, color: delta < 0 ? "#4A7C6E" : delta > 0 ? "#B8574F" : "#A39D93", marginLeft: 4 }}>
-                {delta < 0 ? <Icon path={icons.down} size={14} color="#4A7C6E" /> : delta > 0 ? <Icon path={icons.up} size={14} color="#B8574F" /> : null}
-                {delta > 0 ? `+${delta}` : delta}
-              </span>
-            )}
-          </div>
-        )}
-      </Card>
-      <Card>
-        <SectionLabel>历史记录</SectionLabel>
-        {logs.length === 0 ? <EmptyState text="还没有记录，从今天开始吧" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[...logs].reverse().slice(0, 14).map((l) => (
-              <div key={l.date} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, padding: "6px 0", borderBottom: "1px solid #F3F0E9" }}>
-                <span style={{ color: "#8A8578" }}>{fmtMD(l.date)}</span>
-                <span style={{ color: "#2B2A28", fontWeight: 600 }}>{l.value} kg</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
-}
+  // ---------- 各模块渲染函数 ----------
+  function cardWrap(inner, extraStyle) {
+    return '<div class="card"' + (extraStyle ? ' style="' + extraStyle + '"' : '') + '>' + inner + '</div>';
+  }
 
-function SavingSection({ state, update, color }) {
-  const [val, setVal] = useState("");
-  const [note, setNote] = useState("");
-  const logs = state.logs || [];
-  const total = logs.reduce((sum, l) => sum + l.value, 0);
+  function renderWeight(container, cfg) {
+    var s = state.data.weight;
+    var logs = s.logs || [];
+    var today = todayStr();
+    var last = logs[logs.length - 1];
+    var prev = logs[logs.length - 2];
+    var delta = (last && prev) ? (last.value - prev.value).toFixed(1) : null;
 
-  const add = () => {
-    const n = parseFloat(val);
-    if (isNaN(n) || n === 0) return;
-    update((s) => ({ ...s, logs: [...(s.logs || []), { date: todayStr(), value: n, note }] }));
-    setVal(""); setNote("");
-  };
-  const remove = (idx) => update((s) => ({ ...s, logs: s.logs.filter((_, i) => i !== idx) }));
+    var topCard = '<div class="card-label">今天的体重 (kg)</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+      '<input class="input-field" id="w-input" type="number" inputmode="decimal" placeholder="' + (last ? last.value : '例如 58.5') + '" style="flex:1;font-size:20px;">' +
+      '<button class="icon-btn" id="w-add" style="width:48px;border-radius:12px;background:' + cfg.color + ';">' + iconSvg('check', '#fff') + '</button>' +
+      '</div>';
 
-  return (
-    <React.Fragment>
-      <Card style={{ background: `linear-gradient(135deg, ${color}, #A5622F)` }}>
-        <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, marginBottom: 6 }}>累计结余</div>
-        <div style={{ color: "#fff", fontSize: 32, fontWeight: 700 }}>¥{total.toLocaleString("zh-CN", { maximumFractionDigits: 2 })}</div>
-      </Card>
-      <Card>
-        <SectionLabel>记一笔（收入为正，支出为负）</SectionLabel>
-        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-          <input type="number" inputMode="decimal" value={val} onChange={(e) => setVal(e.target.value)} placeholder="金额，例如 -50"
-            style={{ flex: 1, fontSize: 16, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none" }} />
-        </div>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="备注（可选）"
-          style={{ width: "100%", fontSize: 14, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", marginBottom: 12, boxSizing: "border-box" }} />
-        <PrimaryButton onClick={add} color={color}><Icon path={icons.plus} size={16} color="#fff" /> 添加记录</PrimaryButton>
-      </Card>
-      <Card>
-        <SectionLabel>最近记录</SectionLabel>
-        {logs.length === 0 ? <EmptyState text="还没有记录" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[...logs].reverse().slice(0, 20).map((l, i) => {
-              const realIdx = logs.length - 1 - i;
-              return (
-                <div key={realIdx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, padding: "6px 0", borderBottom: "1px solid #F3F0E9" }}>
-                  <div>
-                    <div style={{ color: "#2B2A28" }}>{l.note || "（无备注）"}</div>
-                    <div style={{ color: "#B5B0A6", fontSize: 11 }}>{fmtMD(l.date)}</div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontWeight: 600, color: l.value >= 0 ? "#4A7C6E" : "#B8574F" }}>{l.value >= 0 ? "+" : ""}{l.value}</span>
-                    <button onClick={() => remove(realIdx)} style={{ border: "none", background: "none", cursor: "pointer" }}>
-                      <Icon path={icons.trash} size={14} color="#C9C4B8" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
-}
+    if (last) {
+      topCard += '<div style="display:flex;align-items:baseline;gap:8px;">' +
+        '<span style="font-size:28px;font-weight:700;color:#2B2A28;">' + last.value + '</span>' +
+        '<span style="font-size:13px;color:#A39D93;">kg</span>';
+      if (delta !== null) {
+        var dColor = delta < 0 ? '#4A7C6E' : (delta > 0 ? '#B8574F' : '#A39D93');
+        var arrow = delta < 0 ? iconSvg('down', dColor) : (delta > 0 ? iconSvg('up', dColor) : '');
+        topCard += '<span style="font-size:13px;display:flex;align-items:center;gap:2px;color:' + dColor + ';margin-left:4px;">' + arrow + (delta > 0 ? '+' + delta : delta) + '</span>';
+      }
+      topCard += '</div>';
+    }
 
-function SleepSection({ state, update, color }) {
-  const [sleepT, setSleepT] = useState("");
-  const [wakeT, setWakeT] = useState("");
-  const logs = state.logs || [];
-  const today = todayStr();
-  const todayLog = logs.find((l) => l.date === today);
+    var histCard = '<div class="card-label">历史记录</div>';
+    if (logs.length === 0) {
+      histCard += '<div class="empty-state">还没有记录，从今天开始吧</div>';
+    } else {
+      histCard += logs.slice().reverse().slice(0, 14).map(function (l) {
+        return '<div class="log-row"><span style="color:#8A8578;">' + fmtMD(l.date) + '</span><span style="color:#2B2A28;font-weight:600;">' + l.value + ' kg</span></div>';
+      }).join('');
+    }
 
-  const calcHours = (sleep, wake) => {
+    container.innerHTML = cardWrap(topCard) + cardWrap(histCard);
+
+    document.getElementById("w-add").addEventListener("click", function () {
+      var val = parseFloat(document.getElementById("w-input").value);
+      if (isNaN(val) || val <= 0) return;
+      update("weight", function (s) {
+        var filtered = (s.logs || []).filter(function (l) { return l.date !== today; });
+        return { logs: filtered.concat([{ date: today, value: val }]) };
+      });
+    });
+  }
+
+  function renderSaving(container, cfg) {
+    var s = state.data.saving;
+    var logs = s.logs || [];
+    var total = logs.reduce(function (sum, l) { return sum + l.value; }, 0);
+
+    var topCard = '<div style="color:rgba(255,255,255,0.85);font-size:12px;margin-bottom:6px;">累计结余</div>' +
+      '<div style="color:#fff;font-size:32px;font-weight:700;">¥' + total.toLocaleString('zh-CN', { maximumFractionDigits: 2 }) + '</div>';
+
+    var formCard = '<div class="card-label">记一笔（收入为正，支出为负）</div>' +
+      '<div style="margin-bottom:8px;"><input class="input-field" id="s-val" type="number" inputmode="decimal" placeholder="金额，例如 -50"></div>' +
+      '<input class="input-field" id="s-note" type="text" placeholder="备注（可选）" style="margin-bottom:12px;">' +
+      '<button class="btn-primary" id="s-add" style="background:' + cfg.color + ';">' + iconSvg('plus', '#fff') + ' 添加记录</button>';
+
+    var listCard = '<div class="card-label">最近记录</div>';
+    if (logs.length === 0) {
+      listCard += '<div class="empty-state">还没有记录</div>';
+    } else {
+      listCard += logs.slice().reverse().slice(0, 20).map(function (l, i) {
+        var realIdx = logs.length - 1 - i;
+        var color = l.value >= 0 ? '#4A7C6E' : '#B8574F';
+        return '<div class="log-row" style="align-items:center;">' +
+          '<div><div style="color:#2B2A28;">' + esc(l.note || '（无备注）') + '</div><div style="color:#B5B0A6;font-size:11px;">' + fmtMD(l.date) + '</div></div>' +
+          '<div style="display:flex;align-items:center;gap:10px;"><span style="font-weight:600;color:' + color + ';">' + (l.value >= 0 ? '+' : '') + l.value + '</span>' +
+          '<button class="icon-btn s-remove" data-idx="' + realIdx + '">' + iconSvg('trash', '#C9C4B8') + '</button></div>' +
+          '</div>';
+      }).join('');
+    }
+
+    container.innerHTML = cardWrap(topCard, 'background:linear-gradient(135deg,' + cfg.color + ',#A5622F)') + cardWrap(formCard) + cardWrap(listCard);
+
+    document.getElementById("s-add").addEventListener("click", function () {
+      var val = parseFloat(document.getElementById("s-val").value);
+      var note = document.getElementById("s-note").value;
+      if (isNaN(val) || val === 0) return;
+      update("saving", function (s) {
+        return { logs: (s.logs || []).concat([{ date: todayStr(), value: val, note: note }]) };
+      });
+    });
+    container.querySelectorAll(".s-remove").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = parseInt(btn.getAttribute("data-idx"));
+        update("saving", function (s) {
+          return { logs: s.logs.filter(function (_, i) { return i !== idx; }) };
+        });
+      });
+    });
+  }
+
+  function calcHours(sleep, wake) {
     if (!sleep || !wake) return null;
-    const [sh, sm] = sleep.split(":").map(Number);
-    const [wh, wm] = wake.split(":").map(Number);
-    let start = sh * 60 + sm, end = wh * 60 + wm;
+    var sp = sleep.split(":").map(Number), wp = wake.split(":").map(Number);
+    var start = sp[0] * 60 + sp[1], end = wp[0] * 60 + wp[1];
     if (end <= start) end += 24 * 60;
     return ((end - start) / 60).toFixed(1);
-  };
+  }
 
-  const save = () => {
-    if (!sleepT || !wakeT) return;
-    const hours = calcHours(sleepT, wakeT);
-    update((s) => {
-      const filtered = (s.logs || []).filter((l) => l.date !== today);
-      return { ...s, logs: [...filtered, { date: today, sleep: sleepT, wake: wakeT, hours }] };
-    });
-    setSleepT(""); setWakeT("");
-  };
+  function renderSleep(container, cfg) {
+    var s = state.data.sleep;
+    var logs = s.logs || [];
+    var today = todayStr();
+    var todayLog = logs.find(function (l) { return l.date === today; });
 
-  return (
-    <React.Fragment>
-      <Card>
-        <SectionLabel>今天几点睡 / 几点起</SectionLabel>
-        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: "#A39D93", marginBottom: 4 }}>入睡</div>
-            <input type="time" value={sleepT} onChange={(e) => setSleepT(e.target.value)}
-              style={{ width: "100%", fontSize: 16, padding: "9px 10px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", boxSizing: "border-box" }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: "#A39D93", marginBottom: 4 }}>起床</div>
-            <input type="time" value={wakeT} onChange={(e) => setWakeT(e.target.value)}
-              style={{ width: "100%", fontSize: 16, padding: "9px 10px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", boxSizing: "border-box" }} />
-          </div>
-        </div>
-        <PrimaryButton onClick={save} color={color} disabled={!sleepT || !wakeT}>保存今天</PrimaryButton>
-        {todayLog && <div style={{ marginTop: 12, fontSize: 13, color: "#8A8578" }}>今日已记录：{todayLog.sleep} → {todayLog.wake}（约 {todayLog.hours} 小时）</div>}
-      </Card>
-      <Card>
-        <SectionLabel>最近记录</SectionLabel>
-        {logs.length === 0 ? <EmptyState text="还没有记录" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[...logs].reverse().slice(0, 14).map((l) => (
-              <div key={l.date} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, padding: "6px 0", borderBottom: "1px solid #F3F0E9" }}>
-                <span style={{ color: "#8A8578" }}>{fmtMD(l.date)}</span>
-                <span style={{ color: "#2B2A28" }}>{l.sleep} - {l.wake}<span style={{ color: "#A39D93", marginLeft: 6 }}>{l.hours}h</span></span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
-}
-
-const MOODS = [
-  { emoji: "😄", label: "开心" }, { emoji: "🙂", label: "平静" }, { emoji: "😐", label: "一般" },
-  { emoji: "😔", label: "低落" }, { emoji: "😣", label: "焦虑" },
-];
-
-function MoodSection({ state, update, color }) {
-  const [note, setNote] = useState("");
-  const [picked, setPicked] = useState(null);
-  const logs = state.logs || [];
-
-  const add = () => {
-    if (!picked) return;
-    update((s) => ({ ...s, logs: [...(s.logs || []), { date: todayStr(), mood: picked, note }] }));
-    setPicked(null); setNote("");
-  };
-
-  return (
-    <React.Fragment>
-      <Card>
-        <SectionLabel>此刻的心情</SectionLabel>
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          {MOODS.map((m) => (
-            <button key={m.label} onClick={() => setPicked(m.label)} style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "10px 0",
-              borderRadius: 12, border: picked === m.label ? `2px solid ${color}` : "1px solid #EAE5DB",
-              background: picked === m.label ? "#FBF6EE" : "#fff", cursor: "pointer",
-            }}>
-              <span style={{ fontSize: 22 }}>{m.emoji}</span>
-              <span style={{ fontSize: 10, color: "#8A8578" }}>{m.label}</span>
-            </button>
-          ))}
-        </div>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="想说点什么？（可选）" rows={3}
-          style={{ width: "100%", fontSize: 14, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", marginBottom: 12, boxSizing: "border-box", resize: "none", fontFamily: "inherit" }} />
-        <PrimaryButton onClick={add} color={color} disabled={!picked}>记录心情</PrimaryButton>
-      </Card>
-      <Card>
-        <SectionLabel>心情足迹</SectionLabel>
-        {logs.length === 0 ? <EmptyState text="还没有记录" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[...logs].reverse().slice(0, 14).map((l, i) => {
-              const m = MOODS.find((x) => x.label === l.mood);
-              return (
-                <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10, borderBottom: "1px solid #F3F0E9" }}>
-                  <span style={{ fontSize: 20 }}>{m && m.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, color: "#2B2A28" }}>{l.mood}<span style={{ color: "#B5B0A6", fontSize: 11, marginLeft: 8 }}>{fmtMD(l.date)}</span></div>
-                    {l.note && <div style={{ fontSize: 13, color: "#8A8578", marginTop: 2 }}>{l.note}</div>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
-}
-
-function EnglishSection({ state, update, color }) {
-  const [minutes, setMinutes] = useState("");
-  const [content, setContent] = useState("");
-  const logs = state.logs || [];
-  const today = todayStr();
-  const doneToday = logs.some((l) => l.date === today);
-
-  const streak = (() => {
-    let count = 0;
-    let d = new Date();
-    const dateSet = new Set(logs.map((l) => l.date));
-    while (true) {
-      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      if (dateSet.has(ds)) { count++; d.setDate(d.getDate() - 1); } else break;
+    var formCard = '<div class="card-label">今天几点睡 / 几点起</div>' +
+      '<div style="display:flex;gap:10px;margin-bottom:12px;">' +
+      '<div style="flex:1;"><div style="font-size:11px;color:#A39D93;margin-bottom:4px;">入睡</div><input class="input-field" id="sl-sleep" type="time" style="font-size:16px;padding:9px 10px;"></div>' +
+      '<div style="flex:1;"><div style="font-size:11px;color:#A39D93;margin-bottom:4px;">起床</div><input class="input-field" id="sl-wake" type="time" style="font-size:16px;padding:9px 10px;"></div>' +
+      '</div>' +
+      '<button class="btn-primary" id="sl-save" style="background:' + cfg.color + ';" disabled>保存今天</button>';
+    if (todayLog) {
+      formCard += '<div style="margin-top:12px;font-size:13px;color:#8A8578;">今日已记录：' + todayLog.sleep + ' → ' + todayLog.wake + '（约 ' + todayLog.hours + ' 小时）</div>';
     }
-    return count;
-  })();
 
-  const add = () => {
-    const n = parseInt(minutes) || 0;
-    if (n <= 0 && !content) return;
-    update((s) => ({ ...s, logs: [...(s.logs || []), { date: todayStr(), minutes: n, content }] }));
-    setMinutes(""); setContent("");
-  };
+    var listCard = '<div class="card-label">最近记录</div>';
+    if (logs.length === 0) {
+      listCard += '<div class="empty-state">还没有记录</div>';
+    } else {
+      listCard += logs.slice().reverse().slice(0, 14).map(function (l) {
+        return '<div class="log-row"><span style="color:#8A8578;">' + fmtMD(l.date) + '</span><span style="color:#2B2A28;">' + l.sleep + ' - ' + l.wake + '<span style="color:#A39D93;margin-left:6px;">' + l.hours + 'h</span></span></div>';
+      }).join('');
+    }
 
-  return (
-    <React.Fragment>
-      <Card style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ fontSize: 12, color: "#A39D93" }}>连续打卡</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: "#2B2A28" }}>{streak} 天</div>
-        </div>
-        {doneToday && <div style={{ fontSize: 12, color: color, background: "#F1EEE3", padding: "6px 10px", borderRadius: 999, fontWeight: 600 }}>今日已打卡</div>}
-      </Card>
-      <Card>
-        <SectionLabel>今天学了什么</SectionLabel>
-        <input type="number" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} placeholder="学习时长（分钟）"
-          style={{ width: "100%", fontSize: 16, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", marginBottom: 8, boxSizing: "border-box" }} />
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="内容 / 生词 / 笔记（可选）" rows={3}
-          style={{ width: "100%", fontSize: 14, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none", marginBottom: 12, boxSizing: "border-box", resize: "none", fontFamily: "inherit" }} />
-        <PrimaryButton onClick={add} color={color}>打卡</PrimaryButton>
-      </Card>
-      <Card>
-        <SectionLabel>学习记录</SectionLabel>
-        {logs.length === 0 ? <EmptyState text="还没有记录" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[...logs].reverse().slice(0, 14).map((l, i) => (
-              <div key={i} style={{ paddingBottom: 10, borderBottom: "1px solid #F3F0E9" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ color: "#8A8578" }}>{fmtMD(l.date)}</span>
-                  <span style={{ color: "#2B2A28", fontWeight: 600 }}>{l.minutes} 分钟</span>
-                </div>
-                {l.content && <div style={{ fontSize: 13, color: "#8A8578", marginTop: 2 }}>{l.content}</div>}
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
+    container.innerHTML = cardWrap(formCard) + cardWrap(listCard);
+
+    var sleepInput = document.getElementById("sl-sleep");
+    var wakeInput = document.getElementById("sl-wake");
+    var saveBtn = document.getElementById("sl-save");
+    function checkEnable() { saveBtn.disabled = !(sleepInput.value && wakeInput.value); }
+    sleepInput.addEventListener("input", checkEnable);
+    wakeInput.addEventListener("input", checkEnable);
+    saveBtn.addEventListener("click", function () {
+      if (!sleepInput.value || !wakeInput.value) return;
+      var hours = calcHours(sleepInput.value, wakeInput.value);
+      update("sleep", function (s) {
+        var filtered = (s.logs || []).filter(function (l) { return l.date !== today; });
+        return { logs: filtered.concat([{ date: today, sleep: sleepInput.value, wake: wakeInput.value, hours: hours }]) };
+      });
+    });
+  }
+
+  var MOODS = [
+    { emoji: "😄", label: "开心" }, { emoji: "🙂", label: "平静" }, { emoji: "😐", label: "一般" },
+    { emoji: "😔", label: "低落" }, { emoji: "😣", label: "焦虑" }
+  ];
+  var pickedMood = null;
+
+  function renderMood(container, cfg) {
+    var s = state.data.mood;
+    var logs = s.logs || [];
+
+    var moodBtns = MOODS.map(function (m) {
+      var isPicked = pickedMood === m.label;
+      return '<button class="mood-btn" data-label="' + m.label + '" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:12px;border:' +
+        (isPicked ? '2px solid ' + cfg.color : '1px solid #EAE5DB') + ';background:' + (isPicked ? '#FBF6EE' : '#fff') + ';cursor:pointer;">' +
+        '<span style="font-size:22px;">' + m.emoji + '</span><span style="font-size:10px;color:#8A8578;">' + m.label + '</span></button>';
+    }).join('');
+
+    var formCard = '<div class="card-label">此刻的心情</div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:12px;">' + moodBtns + '</div>' +
+      '<textarea class="input-field" id="m-note" rows="3" placeholder="想说点什么？（可选）" style="margin-bottom:12px;"></textarea>' +
+
+```
+  '<button class="btn-primary" id="m-add" style="background:' + cfg.color + ';"' + (pickedMood ? '' : ' disabled') + '>记录心情</button>';
+
+var listCard = '<div class="card-label">心情足迹</div>';
+if (logs.length === 0) {
+  listCard += '<div class="empty-state">还没有记录</div>';
+} else {
+  listCard += logs.slice().reverse().slice(0, 14).map(function (l) {
+    var m = MOODS.find(function (x) { return x.label === l.mood; });
+    return '<div style="display:flex;gap:10px;padding-bottom:10px;border-bottom:1px solid #F3F0E9;">' +
+      '<span style="font-size:20px;">' + (m ? m.emoji : '') + '</span>' +
+      '<div style="flex:1;"><div style="font-size:13px;color:#2B2A28;">' + l.mood + '<span style="color:#B5B0A6;font-size:11px;margin-left:8px;">' + fmtMD(l.date) + '</span></div>' +
+      (l.note ? '<div style="font-size:13px;color:#8A8578;margin-top:2px;">' + esc(l.note) + '</div>' : '') + '</div></div>';
+  }).join('');
 }
 
-function OtherSection({ state, update, color }) {
-  const [text, setText] = useState("");
-  const todos = state.todos || [];
+container.innerHTML = cardWrap(formCard) + cardWrap(listCard);
 
-  const add = () => {
-    if (!text.trim()) return;
-    update((s) => ({ ...s, todos: [...(s.todos || []), { id: Date.now(), text: text.trim(), done: false }] }));
-    setText("");
-  };
-  const toggle = (id) => update((s) => ({ ...s, todos: s.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
-  const remove = (id) => update((s) => ({ ...s, todos: s.todos.filter((t) => t.id !== id) }));
+container.querySelectorAll(".mood-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    pickedMood = btn.getAttribute("data-label");
+    renderMood(container, cfg);
+  });
+});
+document.getElementById("m-add").addEventListener("click", function () {
+  if (!pickedMood) return;
+  var note = document.getElementById("m-note").value;
+  update("mood", function (s) {
+    return { logs: (s.logs || []).concat([{ date: todayStr(), mood: pickedMood, note: note }]) };
+  });
+  pickedMood = null;
+});
+```
 
-  return (
-    <React.Fragment>
-      <Card>
-        <SectionLabel>随手记一件事</SectionLabel>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()}
-            placeholder="待办 / 想法 / 提醒事项"
-            style={{ flex: 1, fontSize: 15, padding: "10px 14px", borderRadius: 12, border: "1px solid #EAE5DB", outline: "none" }} />
-          <button onClick={add} style={{ width: 48, borderRadius: 12, border: "none", background: color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon path={icons.plus} size={20} color="#fff" />
-          </button>
-        </div>
-      </Card>
-      <Card>
-        <SectionLabel>清单</SectionLabel>
-        {todos.length === 0 ? <EmptyState text="暂时没有事项" /> : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {todos.map((t) => (
-              <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 4px", borderBottom: "1px solid #F3F0E9" }}>
-                <button onClick={() => toggle(t.id)} style={{
-                  width: 20, height: 20, borderRadius: 6, border: `1.5px solid ${t.done ? color : "#D8D3C7"}`,
-                  background: t.done ? color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
-                }}>
-                  {t.done && <Icon path={icons.check} size={13} color="#fff" strokeWidth={3} />}
-                </button>
-                <span style={{ flex: 1, fontSize: 14, color: t.done ? "#C9C4B8" : "#2B2A28", textDecoration: t.done ? "line-through" : "none" }}>{t.text}</span>
-                <button onClick={() => remove(t.id)} style={{ border: "none", background: "none", cursor: "pointer" }}>
-                  <Icon path={icons.trash} size={14} color="#C9C4B8" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </React.Fragment>
-  );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
-const loadingMsg = document.getElementById("loading-msg");
-if (loadingMsg) loadingMsg.remove();
+function renderEnglish(container, cfg) {
+var s = state.data.english;
+var logs = s.logs || [];
+var today = todayStr();
+var doneToday = logs.some(function (l) { return l.date === today; });
+
+```
+var streak = 0;
+var d = new Date();
+var dateSet = {};
+logs.forEach(function (l) { dateSet[l.date] = true; });
+while (true) {
+  var ds = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  if (dateSet[ds]) { streak++; d.setDate(d.getDate() - 1); } else break;
+}
+
+var topCard = '<div class="row-between"><div><div style="font-size:12px;color:#A39D93;">连续打卡</div>' +
+  '<div style="font-size:26px;font-weight:700;color:#2B2A28;">' + streak + ' 天</div></div>' +
+  (doneToday ? '<div style="font-size:12px;color:' + cfg.color + ';background:#F1EEE3;padding:6px 10px;border-radius:999px;font-weight:600;">今日已打卡</div>' : '') +
+  '</div>';
+
+var formCard = '<div class="card-label">今天学了什么</div>' +
+  '<input class="input-field" id="e-min" type="number" inputmode="numeric" placeholder="学习时长（分钟）" style="margin-bottom:8px;">' +
+  '<textarea class="input-field" id="e-content" rows="3" placeholder="内容 / 生词 / 笔记（可选）" style="margin-bottom:12px;"></textarea>' +
+  '<button class="btn-primary" id="e-add" style="background:' + cfg.color + ';">打卡</button>';
+
+var listCard = '<div class="card-label">学习记录</div>';
+if (logs.length === 0) {
+  listCard += '<div class="empty-state">还没有记录</div>';
+} else {
+  listCard += logs.slice().reverse().slice(0, 14).map(function (l) {
+    return '<div style="padding-bottom:10px;border-bottom:1px solid #F3F0E9;margin-bottom:10px;">' +
+      '<div class="row-between" style="font-size:13px;"><span style="color:#8A8578;">' + fmtMD(l.date) + '</span><span style="color:#2B2A28;font-weight:600;">' + l.minutes + ' 分钟</span></div>' +
+      (l.content ? '<div style="font-size:13px;color:#8A8578;margin-top:2px;">' + esc(l.content) + '</div>' : '') + '</div>';
+  }).join('');
+}
+
+container.innerHTML = cardWrap(topCard) + cardWrap(formCard) + cardWrap(listCard);
+
+document.getElementById("e-add").addEventListener("click", function () {
+  var minutes = parseInt(document.getElementById("e-min").value) || 0;
+  var content = document.getElementById("e-content").value;
+  if (minutes <= 0 && !content) return;
+  update("english", function (s) {
+    return { logs: (s.logs || []).concat([{ date: todayStr(), minutes: minutes, content: content }]) };
+  });
+});
+```
+
+}
+
+function renderOther(container, cfg) {
+var s = state.data.other;
+var todos = s.todos || [];
+
+```
+var formCard = '<div class="card-label">随手记一件事</div>' +
+  '<div style="display:flex;gap:8px;">' +
+  '<input class="input-field" id="o-text" type="text" placeholder="待办 / 想法 / 提醒事项" style="flex:1;">' +
+  '<button class="icon-btn" id="o-add" style="width:48px;border-radius:12px;background:' + cfg.color + ';">' + iconSvg('plus', '#fff') + '</button>' +
+  '</div>';
+
+var listCard = '<div class="card-label">清单</div>';
+if (todos.length === 0) {
+  listCard += '<div class="empty-state">暂时没有事项</div>';
+} else {
+  listCard += todos.map(function (t) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #F3F0E9;">' +
+      '<button class="icon-btn o-toggle" data-id="' + t.id + '" style="width:20px;height:20px;border-radius:6px;border:1.5px solid ' + (t.done ? cfg.color : '#D8D3C7') + ';background:' + (t.done ? cfg.color : 'transparent') + ';flex-shrink:0;">' +
+      (t.done ? iconSvg('check', '#fff') : '') + '</button>' +
+      '<span style="flex:1;font-size:14px;color:' + (t.done ? '#C9C4B8' : '#2B2A28') + ';text-decoration:' + (t.done ? 'line-through' : 'none') + ';">' + esc(t.text) + '</span>' +
+      '<button class="icon-btn o-remove" data-id="' + t.id + '">' + iconSvg('trash', '#C9C4B8') + '</button>' +
+      '</div>';
+  }).join('');
+}
+
+container.innerHTML = cardWrap(formCard) + cardWrap(listCard);
+
+function addTodo() {
+  var input = document.getElementById("o-text");
+  var text = input.value.trim();
+  if (!text) return;
+  update("other", function (s) {
+    return { todos: (s.todos || []).concat([{ id: Date.now(), text: text, done: false }]) };
+  });
+}
+document.getElementById("o-add").addEventListener("click", addTodo);
+document.getElementById("o-text").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") addTodo();
+});
+container.querySelectorAll(".o-toggle").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var id = parseInt(btn.getAttribute("data-id"));
+    update("other", function (s) {
+      return { todos: s.todos.map(function (t) { return t.id === id ? Object.assign({}, t, { done: !t.done }) : t; }) };
+    });
+  });
+});
+container.querySelectorAll(".o-remove").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var id = parseInt(btn.getAttribute("data-id"));
+    update("other", function (s) {
+      return { todos: s.todos.filter(function (t) { return t.id !== id; }) };
+    });
+  });
+});
+```
+
+}
+
+var RENDERERS = {
+weight: renderWeight,
+saving: renderSaving,
+sleep: renderSleep,
+mood: renderMood,
+english: renderEnglish,
+other: renderOther
+};
+
+function render() {
+renderNav();
+var cfg = SECTIONS.find(function (s) { return s.key === state.active; });
+var wrap = document.getElementById(“content-wrap”);
+wrap.innerHTML = ‘<div class="header-date">’ + fmtMD(todayStr()) + ’ · 今日记录</div>’ +
+‘<div class="header-title">’ + cfg.label + ‘</div>’ +
+‘<div id="section-body"></div>’;
+var body = document.getElementById(“section-body”);
+RENDERERS[state.active](body, cfg);
+}
+
+render();
+})();
 </script>
 
 </body>
