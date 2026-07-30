@@ -93,6 +93,11 @@
 </div>
 
 <script>
+window.onerror = function (msg, url, line, col, error) {
+  document.body.innerHTML = '<div style="padding:24px;font-family:monospace;font-size:13px;color:#B8574F;white-space:pre-wrap;background:#fff;">脚本出错：\n' +
+    msg + '\n第 ' + line + ' 行，第 ' + col + ' 列\n\n' + (error && error.stack ? error.stack : '') + '</div>';
+  return false;
+};
 (function () {
   "use strict";
 
